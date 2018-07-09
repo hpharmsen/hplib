@@ -1,5 +1,4 @@
-import sys
-import MySQLdb, MySQLdb.cursors  # pip3 install pymysql
+import pymysql  # pip3 install pymysql
 
 
 def formatval( val ):
@@ -8,32 +7,14 @@ def formatval( val ):
     if isinstance( val, ( int, float ) ):
         return str(val)
         
-    if sys.version_info[0] < 3:
-        if isinstance( val, (long) ): # Long bestaat niet meer in Python3
-            return str(val)
-        else:
-            return '"%s"' % unicode(val, errors='ignore').replace('"',"'")
-    else: # Python3
-        return '"%s"' % val.replace('"',"'")
+    return '"%s"' % val.replace('"',"'")
 
 class dbClass(object):
     
     def __init__(self, host, dbname, user, passwd ):
-        if sys.version_info[0] < 3:
-            import MySQLdb, MySQLdb.cursors  # http://sourceforge.net/project/showfiles.php?group_id=22307&package_id=15775&release_id=491012
-            self.db = MySQLdb.connect(host=host, user=user, passwd=passwd, db=dbname, cursorclass=MySQLdb.cursors.DictCursor)
-            self.cursor = self.db.cursor()
-        else:
-            import pymysql
-            self.db = pymysql.connect(host=host, user=user, passwd=passwd, db=dbname)
-            self.cursor = self.db.cursor(pymysql.cursors.DictCursor)
+        self.db = pymysql.connect(host=host, user=user, passwd=passwd, db=dbname)
+        self.cursor = self.db.cursor(pymysql.cursors.DictCursor)
             
-        self.test = 0
-        self.debug = 0
-
-    def init(self, host, dbname, user, passwd ):
-        self.db = MySQLdb.connect(host=host, user=user, passwd=passwd, db=dbname, cursorclass=MySQLdb.cursors.DictCursor)
-        self.cursor = self.db.cursor()
         self.test = 0
         self.debug = 0
 
