@@ -8,4 +8,5 @@ setup(name='hplib',
       author_email='hp@harmsen.nl',
       license='GPL',
       packages=['hplib'],
+      install_requires=['pymysql'],
       zip_safe=False)

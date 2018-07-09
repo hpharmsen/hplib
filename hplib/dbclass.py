@@ -1,4 +1,6 @@
 import sys
+import MySQLdb, MySQLdb.cursors  # pip3 install pymysql
+
 
 def formatval( val ):
     if val==None:
@@ -30,9 +32,6 @@ class dbClass(object):
         self.debug = 0
 
     def init(self, host, dbname, user, passwd ):
-        import MySQLdb, MySQLdb.cursors  # brew install mysql --universal
-                                         # pip install MySQL-python
-                                         # of http://sourceforge.net/project/showfiles.php?group_id=22307&package_id=15775&release_id=491012
         self.db = MySQLdb.connect(host=host, user=user, passwd=passwd, db=dbname, cursorclass=MySQLdb.cursors.DictCursor)
         self.cursor = self.db.cursor()
         self.test = 0
@@ -40,10 +39,7 @@ class dbClass(object):
 
     @classmethod # Aanroepen als db = dbClass.from_inifile( 'db.ini' )
     def from_inifile( cls, inifilename ):
-        if sys.version_info[0] < 3:
-            from ConfigParser import ConfigParser
-        else:
-            from configparser  import ConfigParser
+        from configparser import ConfigParser
         inifile = ConfigParser()
         inifile.read( inifilename )
         params = tuple( inifile.get( 'database', param ) for param in ['dbhost', 'dbname', 'dbuser', 'dbpass'])
