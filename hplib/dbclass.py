@@ -1,10 +1,10 @@
 import pymysql  # pip3 install pymysql
-
+import decimal
 
 def formatval( val ):
     if val==None:
         return 'NULL'
-    if isinstance( val, ( int, float ) ):
+    if isinstance( val, ( int, float, decimal.Decimal ) ):
         return str(val)
         
     return '"%s"' % val.replace('"',"'")
