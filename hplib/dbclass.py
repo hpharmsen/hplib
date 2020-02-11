@@ -87,10 +87,12 @@ class dbClass(object):
     def last_insert_id(self):
         return self.execute( 'SELECT LAST_INSERT_ID() as id' )[0]['id']
         
-    def update( self, table, wheredict, valuedict ):
+    def update( self, table, wheredict, valuedict, ignore=False ):
         valueclause = ','.join( ['`%s`=%s' % (key,formatval(valuedict[key])) for key in valuedict.keys()] )
-        whereclause = ' AND '.join( ['`%s`="%s"' % (key,wheredict[key]) for key in wheredict.keys()] )
-        sql = 'UPDATE %s SET %s WHERE %s' % (table, valueclause, whereclause )
+        whereclause = ' AND '.join( ['`%s`="%s"' % (key,wheredict[key]) for key in wheredict.keys()] )    
+        ignore_keyword = 'IGNORE ' if ignore else ''
+    
+        sql = 'UPDATE %s%s SET %s WHERE %s' % (table, valueclause, whereclause )
     
         if self.test:
             if not self.debug:
