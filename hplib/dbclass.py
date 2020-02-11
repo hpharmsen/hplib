@@ -92,7 +92,7 @@ class dbClass(object):
         whereclause = ' AND '.join( ['`%s`="%s"' % (key,wheredict[key]) for key in wheredict.keys()] )    
         ignore_keyword = 'IGNORE ' if ignore else ''
     
-        sql = 'UPDATE %s%s SET %s WHERE %s' % (table, valueclause, whereclause )
+        sql = 'UPDATE %s%s SET %s WHERE %s' % (ignore_keyword, table, valueclause, whereclause )
     
         if self.test:
             if not self.debug:
