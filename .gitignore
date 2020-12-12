@@ -1,6 +1,7 @@
 # Production versions of the ini files
 db.ini
 mail.ini
+venv/
 
 # Compiled python modules.
 *.pyc

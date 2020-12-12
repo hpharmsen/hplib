@@ -18,7 +18,7 @@ class dbClass(object):
         self.test = 0
         self.debug = 0
 
-    @classmethod # Aanroepen als db = dbClass.from_inifile( 'db.ini' )
+    @classmethod # Inititate like this: db = dbClass.from_inifile( 'db.ini' )
     def from_inifile( cls, inifilename ):
         from configparser import ConfigParser
         inifile = ConfigParser()
@@ -79,7 +79,7 @@ class dbClass(object):
         sql = 'INSERT%s INTO %s (%s) VALUES (%s)' % (ignore_string, table, keys,values)
         if self.test:
             if not self.debug:
-                print( unicode(sql).encode("ascii", "ignore") )
+                print( sql )
         else:
             self.execute( sql )
         return self.last_insert_id()
@@ -96,7 +96,7 @@ class dbClass(object):
     
         if self.test:
             if not self.debug:
-                print( unicode(sql).encode("ascii", "ignore") )
+                print( sql )
         else:
             self.execute( sql )
         
@@ -114,7 +114,7 @@ class dbClass(object):
         sql = 'DELETE FROM %s WHERE %s' % (table, whereclause)
         if self.test:
             if not self.debug:
-                print( unicode(sql).encode("ascii", "ignore"))
+                print( sql)
         else:
             self.execute( sql )
     
