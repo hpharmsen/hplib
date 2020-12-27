@@ -1,13 +1,16 @@
 import pymysql  # pip3 install pymysql
 import decimal
+from datetime import datetime
 
 def formatval( val ):
     if val==None:
         return 'NULL'
     if isinstance( val, ( int, float, decimal.Decimal ) ):
         return str(val)
+    if isinstance( val, datetime):
+        return val.strftime( '%Y-%m-%d %H:%M:%S')
         
-    return '"%s"' % val.replace('"',"'")
+    return '"%s"' % str(val).replace('"',"'")
 
 class dbClass(object):
     
@@ -101,7 +104,7 @@ class dbClass(object):
             self.execute( sql )
         
     def updateinsert( self, table, lookupdict, insertdict ):
-        lookupfield = lookupdict.keys()[0]
+        lookupfield = list(lookupdict.keys())[0]
         id = self.lookup( table, lookupdict, lookupfield )
         if not id:
             id = self.insert( table, insertdict )
