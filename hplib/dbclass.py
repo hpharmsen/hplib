@@ -22,11 +22,11 @@ class dbClass(object):
         self.debug = 0
 
     @classmethod # Inititate like this: db = dbClass.from_inifile( 'db.ini' )
-    def from_inifile( cls, inifilename ):
+    def from_inifile( cls, inifilename, section='database' ):
         from configparser import ConfigParser
         inifile = ConfigParser()
         inifile.read( inifilename )
-        params = tuple( inifile.get( 'database', param ) for param in ['dbhost', 'dbname', 'dbuser', 'dbpass'])
+        params = tuple( inifile.get( section, param ) for param in ['dbhost', 'dbname', 'dbuser', 'dbpass'])
         return cls( *params )
 
     def execute(self,sql,*params):
