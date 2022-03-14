@@ -2,6 +2,7 @@ import decimal
 from datetime import datetime
 
 import pymysql  # pip3 install pymysql
+from pymysql import constants
 from sqlalchemy import create_engine
 
 def formatval( val ):
@@ -22,7 +23,7 @@ class dbClass(object):
         self._dbuser = user
         self.__dbpass = passwd
 
-        self.db = pymysql.connect(host=host, user=user, passwd=passwd, db=dbname, client_flag=CLIENT.MULTI_STATEMENTS)
+        self.db = pymysql.connect(host=host, user=user, passwd=passwd, db=dbname, client_flag=constants.CLIENT.MULTI_STATEMENTS)
         self.cursor = self.db.cursor(pymysql.cursors.DictCursor)
 
         self.test = 0
