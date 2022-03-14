@@ -1,6 +1,8 @@
-import pymysql  # pip3 install pymysql
 import decimal
 from datetime import datetime
+
+import pymysql  # pip3 install pymysql
+from sqlalchemy import create_engine
 
 def formatval( val ):
     if val==None:
@@ -15,11 +17,23 @@ def formatval( val ):
 class dbClass(object):
     
     def __init__(self, host, dbname, user, passwd ):
-        self.db = pymysql.connect(host=host, user=user, passwd=passwd, db=dbname)
+        self._dbhost = host
+        self._dbname = dbname
+        self._dbuser = user
+        self.__dbpass = passwd
+
+        self.db = pymysql.connect(host=host, user=user, passwd=passwd, db=dbname, client_flag=CLIENT.MULTI_STATEMENTS)
         self.cursor = self.db.cursor(pymysql.cursors.DictCursor)
-            
+
         self.test = 0
         self.debug = 0
+        self.engine = None
+
+    def sql_alchemy_engine(self):
+        if not self.engine:
+            self.engine = create_engine(f"mysql+pymysql://{self._dbuser}:{self.__dbpass}@{self._dbhost}/{self._dbname}")
+            self.engine.connect()
+        return self.engine
 
     @classmethod # Inititate like this: db = dbClass.from_inifile( 'db.ini' )
     def from_inifile( cls, inifilename, section='database' ):
