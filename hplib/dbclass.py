@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
+import sqlparse
 
 def formatval(val):
     if val == None:
@@ -34,24 +34,32 @@ class dbClass(object):
         params = tuple(inifile.get(section, param) for param in ['dbhost', 'dbname', 'dbuser', 'dbpass'])
         return cls(*params)
 
-    def first(self, sql):
-        return next(self.execute(sql))
+    def first(self, sql: str):
+        return next(self.query(sql))
+
+    def query(self, sql: str):
+        if self.debug:
+            print(sql)
+        if not sql.strip().lower().startswith('select'):
+            print( 'Warning: dbClass.query sql parameter should start with SELECT. Use .execute instead\n', sql)
+        resultset = self.engine.execute(sql)
+        for row in resultset.mappings().all():
+            yield dict(row)
 
     def execute(self, sql, *params):
+        if sql.strip().lower().startswith('select'):
+            print( 'Warning: dbClass.execute sql parameter should not start with SELECT. Use .query instead\n', sql)
         if params:
             sql = sql % tuple([str(s).replace('\\', '\\\\').replace("'", r"\'").replace('"', r'\"') for s in params])
         return self._execute(sql)
 
+
     def _execute(self, sql):
         if self.debug:
             print(sql)
-        resultset = self.engine.execute(sql)
-        if (sql.strip().lower().startswith('select')):
-            for row in resultset.mappings().all():
-                yield dict(row)
-            # map = resultset.mappings().all()
-            # result = [dict(row) for row in map]
-            # return result
+        for statement in sqlparse.split(sql):
+            if statement:
+                self.engine.execute(statement.replace('%','%%'), params=None)
 
     def lookup(self, table, conditions, outfields):
         whereclause = ''
@@ -66,7 +74,7 @@ class dbClass(object):
             what = ','.join(outfields)
 
         try:
-            res = next(self.execute('SELECT %s FROM %s %s' % (what, table, whereclause)))
+            res = self.first('SELECT %s FROM %s %s' % (what, table, whereclause))
         except StopIteration:
             return None
         if type(outfields) == type(''):
@@ -82,7 +90,7 @@ class dbClass(object):
             else:
                 whereclause += 'AND `%s`="%s" ' % (key, conditions[key])
 
-        return self.execute('SELECT * FROM %s %s' % (table, whereclause))
+        return self.query('SELECT * FROM %s %s' % (table, whereclause))
 
     def insert(self, table, dict, ignore=False):
         keys = ','.join(['%s' % key for key in dict.keys()])
