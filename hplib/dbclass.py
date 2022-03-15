@@ -97,7 +97,7 @@ class dbClass(object):
         return self.last_insert_id()
 
     def last_insert_id(self):
-        return self.execute('SELECT LAST_INSERT_ID() as id')[0]['id']
+        return self.first('SELECT LAST_INSERT_ID() as id')['id']
 
     def update(self, table, wheredict, valuedict, ignore=False):
         valueclause = ','.join(['`%s`=%s' % (key, formatval(valuedict[key])) for key in valuedict.keys()])
