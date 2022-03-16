@@ -1,5 +1,6 @@
 import decimal
 from datetime import datetime
+from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -37,14 +38,16 @@ class dbClass(object):
     def first(self, sql: str):
         return next(self.query(sql))
 
-    def query(self, sql: str):
+    def query(self, sql: str) -> Generator:
         if self.debug:
             print(sql)
         if not sql.strip().lower().startswith('select'):
             print( 'Warning: dbClass.query sql parameter should start with SELECT. Use .execute instead\n', sql)
         resultset = self.engine.execute(sql)
-        for row in resultset.mappings().all():
-            yield dict(row)
+        for row_mapping in resultset.mappings().all():
+            yield(dict(row_mapping))
+        else:
+            yield from () # Interesting construction to make sure query always returns a generator
 
     def execute(self, sql, *params):
         if sql.strip().lower().startswith('select'):
@@ -82,7 +85,7 @@ class dbClass(object):
         else:
             return tuple([res[outf] for outf in outfields])
 
-    def select(self, table, conditions):
+    def select(self, table, conditions) -> Generator[int, None, None]:
         whereclause = ''
         for key in conditions.keys():
             if not whereclause:
@@ -90,7 +93,7 @@ class dbClass(object):
             else:
                 whereclause += 'AND `%s`="%s" ' % (key, conditions[key])
 
-        return self.query('SELECT * FROM %s %s' % (table, whereclause))
+        yield from self.query('SELECT * FROM %s %s' % (table, whereclause))
 
     def insert(self, table, dict, ignore=False):
         keys = ','.join(['%s' % key for key in dict.keys()])
