@@ -4,19 +4,18 @@ import configparser
 import os
 
 import pytest
-
 from hplib.dbclass import dbClass
 
 
-@pytest.fixture
-def database():
+@pytest.fixture(name="database")
+def fixture_database():
     config_file = "hplib/db.ini"
-    database = dbClass.from_inifile(config_file)
-    return database
+    dbase = dbClass.from_inifile(config_file)
+    return dbase
 
 
-@pytest.fixture
-def table():
+@pytest.fixture(name='table')
+def fixture_table():
     return "test_dbclass"
 
 
@@ -26,9 +25,9 @@ def test_connnect_to_db():
     assert os.path.isfile(config_file)
     config.read(config_file)
 
-    database = dbClass(*config["database"].values())
-    assert database is not None, "Could not connect to database"
-    return database
+    dbase = dbClass(*config["database"].values())
+    assert dbase is not None, "Could not connect to database"
+    return dbase
 
 
 def test_create_db(database, table):
