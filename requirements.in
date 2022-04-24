@@ -4,3 +4,4 @@ sqlparse
 pyyaml
 configparser
 pytest
+wheel
