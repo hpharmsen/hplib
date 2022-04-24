@@ -16,7 +16,7 @@ setup(name='hplib',
       author_email='hp@harmsen.nl',
       license='THE UNLICENCE',
       packages=['hplib'],
-      install_requires=['configparser','pyyaml','sqlalchemy','sqlparse'],
+      install_requires=['configparser', 'pymysql', 'pyyaml', 'pytest', 'sqlalchemy', 'sqlparse'],
       classifiers=[
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.7",

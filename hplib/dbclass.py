@@ -53,6 +53,7 @@ class dbClass(object):
         if sql.strip().lower().startswith('select'):
             print( 'Warning: dbClass.execute sql parameter should not start with SELECT. Use .query instead\n', sql)
         if params:
+            print( 'PARAMS', params)
             sql = sql % tuple([str(s).replace('\\', '\\\\').replace("'", r"\'").replace('"', r'\"') for s in params])
         return self._execute(sql)
 
@@ -85,13 +86,14 @@ class dbClass(object):
         else:
             return tuple([res[outf] for outf in outfields])
 
-    def select(self, table, conditions) -> Generator[int, None, None]:
+    def select(self, table, conditions=None) -> Generator[int, None, None]:
         whereclause = ''
-        for key in conditions.keys():
-            if not whereclause:
-                whereclause = 'WHERE `%s`="%s" ' % (key, conditions[key])
-            else:
-                whereclause += 'AND `%s`="%s" ' % (key, conditions[key])
+        if conditions:
+            for key in conditions.keys():
+                if not whereclause:
+                    whereclause = 'WHERE `%s`="%s" ' % (key, conditions[key])
+                else:
+                    whereclause += 'AND `%s`="%s" ' % (key, conditions[key])
 
         yield from self.query('SELECT * FROM %s %s' % (table, whereclause))
 

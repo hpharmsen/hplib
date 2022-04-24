@@ -1,5 +1,5 @@
 # Production versions of the ini files
-db.ini
+hplib/db.ini
 mail.ini
 venv/
 

@@ -1,4 +1,6 @@
+pymysql
 sqlalchemy
 sqlparse
 pyyaml
 configparser
+pytest
