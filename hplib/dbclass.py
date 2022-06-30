@@ -9,17 +9,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 import sqlparse
 
-def formatval(val):
-    if val == None:
-        return 'NULL'
-    if isinstance(val, (int, float, decimal.Decimal)):
-        return str(val)
-    if isinstance(val, datetime):
-        return val.strftime('%Y-%m-%d %H:%M:%S')
-
-    return '"%s"' % str(val).replace('"', "'")
-
-
 class dbClass(object):
 
     def __init__(self, host, dbname, user, passwd, database_type='mysql+pymysql', port=''):
@@ -27,7 +16,9 @@ class dbClass(object):
         if port:
             port = ':' + port
         self.engine = create_engine(f"{database_type}://{user}:{passwd}@{host}{port}/{dbname}")
-
+        self.database_type = database_type
+        self.escape_char = '"' if database_type == 'postgresql' else '`'
+        self.quote = "'" if database_type == 'postgresql' else '"'
         self.engine.connect()
         self.session = sessionmaker(bind=self.engine)()
 
@@ -98,9 +89,9 @@ class dbClass(object):
         whereclause = ''
         for key in conditions.keys():
             if not whereclause:
-                whereclause = f'WHERE `{key}`="{conditions[key]}" '
+                whereclause = f'WHERE {self.escape_char}{key}{self.escape_char}={self.quote}{conditions[key]}{self.quote} '
             else:
-                whereclause += f'AND `{key}`="{conditions[key]}" '
+                whereclause += f'AND {self.escape_char}{key}{self.escape_char}={self.quote}{conditions[key]}{self.quote} '
         if type(outfields) == type(''):
             what = outfields
         elif type(outfields) == type([]):
@@ -120,30 +111,37 @@ class dbClass(object):
         if conditions:
             for key in conditions.keys():
                 if not whereclause:
-                    whereclause = f'WHERE`{key}`="{conditions[key]}" '
+                    whereclause = f'WHERE {self.escape_char}{key}{self.escape_char}={self.quote}{conditions[key]}{self.quote} '
                 else:
-                    whereclause += f'AND `{key}`="{conditions[key]}" '
+                    whereclause += f'AND {self.escape_char}{key}{self.escape_char}={self.quote}{conditions[key]}{self.quote} '
 
         yield from self.query('SELECT * FROM %s %s' % (table, whereclause))
 
     def insert(self, table, dict, ignore=False):
         keys = ','.join(['%s' % key for key in dict.keys()])
-        values = ','.join([formatval(val) for val in dict.values()])
+        values = ','.join([self.formatval(val) for val in dict.values()])
         ignore_string = ignore and ' IGNORE' or ''
         sql = f'INSERT{ignore_string} INTO {table} ({keys}) VALUES ({values})'
         if self.test:
             if not self.debug:
                 print(sql)
         else:
-            self.execute(sql)
-        return self.last_insert_id()
+            if self.database_type == 'postgresql':
+                sql += ' RETURNING id'
+                return self.query(sql)
+            else:
+                self.execute(sql)
+                return self.last_insert_id()
+
 
     def last_insert_id(self):
+        if self.database_type == 'postgresql':
+            return self.first('SELECT lastval()')
         return self.first('SELECT LAST_INSERT_ID() as id')['id']
 
     def update(self, table, wheredict, valuedict, ignore=False):
-        valueclause = ','.join([f'`{key}`={formatval(valuedict[key])}' for key in valuedict.keys()])
-        whereclause = ' AND '.join([f'`{key}`="{wheredict[key]}"' for key in wheredict.keys()])
+        valueclause = ','.join([f'{self.escape_char}{key}{self.escape_char}={self.formatval(valuedict[key])}' for key in valuedict.keys()])
+        whereclause = ' AND '.join([f'{self.escape_char}{key}{self.escape_char}={self.quote}{wheredict[key]}{self.quote}' for key in wheredict.keys()])
         ignore_keyword = 'IGNORE ' if ignore else ''
 
         sql = f'UPDATE {ignore_keyword} {table} SET {valueclause} WHERE {whereclause}'
@@ -164,7 +162,7 @@ class dbClass(object):
         return id
 
     def delete(self, table, wheredict):
-        whereclause = ' AND '.join([f'`{key}`="{wheredict[key]}"' for key in wheredict.keys()])
+        whereclause = ' AND '.join([f'{self.escape_char}{key}{self.escape_char}={self.quote}{wheredict[key]}{self.quote}' for key in wheredict.keys()])
         sql = f'DELETE FROM {table} WHERE {whereclause}]'
         if self.test:
             if not self.debug:
@@ -174,3 +172,18 @@ class dbClass(object):
 
     def commit(self):
         self.session.commit()
+
+    def formatval(self, val):
+        if val == None:
+            return 'NULL'
+        if isinstance(val, (int, float, decimal.Decimal)):
+            return str(val)
+        if isinstance(val, datetime):
+            return val.strftime('%Y-%m-%d %H:%M:%S')
+
+        if self.database_type== 'postgresql':
+            return "'%s'" % str(val).replace("'", '"')
+        else:
+            return '"%s"' % str(val).replace('"', "'")
+
+
