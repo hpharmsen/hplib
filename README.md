@@ -1,5 +1,6 @@
 # HP Lib
 
+Current version: 3.0.6
 ## dbClass
 ### usage
 
