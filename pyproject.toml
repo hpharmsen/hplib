@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hplib"
-version = "3.0.6"
+version = "3.0.7"
 description = "Usefull Python classes for mysql database en sending emails"
 readme = "README.md"
 authors = [{ name = "HP Harmsen", email = "hp@harmsen.nl" }]
