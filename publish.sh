@@ -1,3 +1,4 @@
+python -m pip install build
 python bumpversion.py patch
 rm dist/*
 python -m build
