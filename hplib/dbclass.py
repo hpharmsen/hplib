@@ -117,7 +117,7 @@ class dbClass(object):
 
         yield from self.query('SELECT * FROM %s %s' % (table, whereclause))
 
-    def insert(self, table, dict, ignore=False):
+    def insert(self, table, dict, ignore=False, returnfield=None):
         keys = ','.join(['%s' % key for key in dict.keys()])
         values = ','.join([self.formatval(val) for val in dict.values()])
         ignore_string = ignore and ' IGNORE' or ''
@@ -127,12 +127,14 @@ class dbClass(object):
                 print(sql)
         else:
             if self.database_type == 'postgresql':
-                sql += ' RETURNING id'
-                return self.query(sql)
+                if returnfield:
+                    sql += f' RETURNING {returnfield}'
+                    return self.query(sql)
+                else:
+                    return self.execute(sql)
             else:
                 self.execute(sql)
                 return self.last_insert_id()
-
 
     def last_insert_id(self):
         if self.database_type == 'postgresql':
@@ -152,11 +154,11 @@ class dbClass(object):
         else:
             self.execute(sql)
 
-    def updateinsert(self, table, lookupdict, insertdict):
+    def updateinsert(self, table, lookupdict, insertdict, returnfield=None):
         lookupfield = list(lookupdict.keys())[0]
         id = self.lookup(table, lookupdict, lookupfield)
         if not id:
-            id = self.insert(table, insertdict)
+            id = self.insert(table, insertdict, returnfield=returnfield)
         else:
             self.update(table, lookupdict, insertdict)
         return id
@@ -187,3 +189,6 @@ class dbClass(object):
             return '"%s"' % str(val).replace('"', "'")
 
 
+    def dataframe(self, query:str):
+        import pandas as pd
+        return pd.read_sql_query(query.replace('%', '%%'), self.engine)

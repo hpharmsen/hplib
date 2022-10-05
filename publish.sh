@@ -5,4 +5,4 @@ twine upload dist/*
 git commit -v -a -m "publish `date`"
 git push
 echo "to update installed package:"
-echo "pip install --upgrade --force-reinstall hplib"
+echo "pip install --upgrade --no-cache-dir --force-reinstall hplib"
